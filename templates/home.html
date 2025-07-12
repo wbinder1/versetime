@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+{% block title %}VerseTime - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-home me-2"></i>VerseTime Configuration
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Bible Version Selection -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fas fa-book me-2"></i>Bible Version
+            </div>
+            <div class="card-body">
+                <form id="bibleForm">
+                    <div class="mb-3">
+                        <label for="bibleVersion" class="form-label">Select Bible Version</label>
+                        <select class="form-select" id="bibleVersion" name="BIBLE_VERSION">
+                            {% for bible in bibles %}
+                            <option value="{{ bible.id }}" {% if bible.id == current_bible %}selected{% endif %}>
+                                {{ bible.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Choose which Bible translation to display</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="loading">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Saving...
+                        </span>
+                        <span class="btn-text">
+                            <i class="fas fa-save me-2"></i>Save Bible Version
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Display Settings -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="fas fa-eye me-2"></i>Display Settings
+            </div>
+            <div class="card-body">
+                <form id="displayForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="showTime" name="SHOW_TIME" 
+                                       {% if config.SHOW_TIME %}checked{% endif %}>
+                                <label class="form-check-label" for="showTime">
+                                    Show Time
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="showDate" name="SHOW_DATE"
+                                       {% if config.SHOW_DATE %}checked{% endif %}>
+                                <label class="form-check-label" for="showDate">
+                                    Show Date
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="clearScreen" name="CLEAR_SCREEN"
+                                       {% if config.CLEAR_SCREEN %}checked{% endif %}>
+                                <label class="form-check-label" for="clearScreen">
+                                    Clear Screen
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="updateInterval" class="form-label">Update Interval (seconds)</label>
+                                <input type="number" class="form-control" id="updateInterval" name="UPDATE_INTERVAL"
+                                       value="{{ config.UPDATE_INTERVAL }}" min="10" max="3600">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="maxLineLength" class="form-label">Max Line Length</label>
+                                <input type="number" class="form-control" id="maxLineLength" name="MAX_LINE_LENGTH"
+                                       value="{{ config.MAX_LINE_LENGTH }}" min="40" max="120">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="loading">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Saving...
+                        </span>
+                        <span class="btn-text">
+                            <i class="fas fa-save me-2"></i>Save Display Settings
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Time Format Settings -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-clock me-2"></i>Time & Date Format
+            </div>
+            <div class="card-body">
+                <form id="formatForm">
+                    <div class="mb-3">
+                        <label for="timeFormat" class="form-label">Time Format</label>
+                        <select class="form-select" id="timeFormat" name="TIME_FORMAT">
+                            <option value="%I:%M %p" {% if config.TIME_FORMAT == '%I:%M %p' %}selected{% endif %}>
+                                12-hour (2:30 PM)
+                            </option>
+                            <option value="%H:%M" {% if config.TIME_FORMAT == '%H:%M' %}selected{% endif %}>
+                                24-hour (14:30)
+                            </option>
+                            <option value="%I:%M:%S %p" {% if config.TIME_FORMAT == '%I:%M:%S %p' %}selected{% endif %}>
+                                12-hour with seconds (2:30:45 PM)
+                            </option>
+                            <option value="%H:%M:%S" {% if config.TIME_FORMAT == '%H:%M:%S' %}selected{% endif %}>
+                                24-hour with seconds (14:30:45)
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dateFormat" class="form-label">Date Format</label>
+                        <select class="form-select" id="dateFormat" name="DATE_FORMAT">
+                            <option value="%A, %B %d, %Y" {% if config.DATE_FORMAT == '%A, %B %d, %Y' %}selected{% endif %}>
+                                Full (Monday, January 15, 2024)
+                            </option>
+                            <option value="%B %d, %Y" {% if config.DATE_FORMAT == '%B %d, %Y' %}selected{% endif %}>
+                                Short (January 15, 2024)
+                            </option>
+                            <option value="%m/%d/%Y" {% if config.DATE_FORMAT == '%m/%d/%Y' %}selected{% endif %}>
+                                Numeric (01/15/2024)
+                            </option>
+                            <option value="%Y-%m-%d" {% if config.DATE_FORMAT == '%Y-%m-%d' %}selected{% endif %}>
+                                ISO (2024-01-15)
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="loading">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Saving...
+                        </span>
+                        <span class="btn-text">
+                            <i class="fas fa-save me-2"></i>Save Format Settings
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verse Selection Settings -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-random me-2"></i>Verse Selection
+            </div>
+            <div class="card-body">
+                <form id="verseForm">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="timeBasedSelection" name="USE_TIME_BASED_SELECTION"
+                               {% if config.USE_TIME_BASED_SELECTION %}checked{% endif %}>
+                        <label class="form-check-label" for="timeBasedSelection">
+                            Time-based Selection
+                        </label>
+                        <div class="form-text">Show different verses based on current time</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="displayTitle" class="form-label">Display Title</label>
+                        <input type="text" class="form-control" id="displayTitle" name="DISPLAY_TITLE"
+                               value="{{ config.DISPLAY_TITLE }}" maxlength="50">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="borderChar" class="form-label">Border Character</label>
+                        <input type="text" class="form-control" id="borderChar" name="BORDER_CHAR"
+                               value="{{ config.BORDER_CHAR }}" maxlength="1">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="indentSize" class="form-label">Indent Size</label>
+                        <input type="number" class="form-control" id="indentSize" name="INDENT_SIZE"
+                               value="{{ config.INDENT_SIZE }}" min="5" max="20">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="loading">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Saving...
+                        </span>
+                        <span class="btn-text">
+                            <i class="fas fa-save me-2"></i>Save Verse Settings
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Control -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-cogs me-2"></i>Service Control
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-2">VerseTime Service</h5>
+                        <p class="text-muted mb-0">Restart the VerseTime service to apply configuration changes</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button type="button" class="btn btn-warning" id="restartService">
+                            <span class="loading">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Restarting...
+                            </span>
+                            <span class="btn-text">
+                                <i class="fas fa-redo me-2"></i>Restart Service
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Bible version form
+    $('#bibleForm').on('submit', function(e) {
+        e.preventDefault();
+        const button = $(this).find('button[type="submit"]');
+        showLoading(button);
+        
+        const formData = {
+            BIBLE_VERSION: $('#bibleVersion').val()
+        };
+        
+        $.ajax({
+            url: '/api/update_config',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                hideLoading(button);
+                if (response.success) {
+                    showAlert(response.message, 'success');
+                } else {
+                    showAlert(response.message, 'danger');
+                }
+            },
+            error: function() {
+                hideLoading(button);
+                showAlert('Failed to update Bible version', 'danger');
+            }
+        });
+    });
+    
+    // Display settings form
+    $('#displayForm').on('submit', function(e) {
+        e.preventDefault();
+        const button = $(this).find('button[type="submit"]');
+        showLoading(button);
+        
+        const formData = {
+            SHOW_TIME: $('#showTime').is(':checked'),
+            SHOW_DATE: $('#showDate').is(':checked'),
+            CLEAR_SCREEN: $('#clearScreen').is(':checked'),
+            UPDATE_INTERVAL: parseInt($('#updateInterval').val()),
+            MAX_LINE_LENGTH: parseInt($('#maxLineLength').val())
+        };
+        
+        $.ajax({
+            url: '/api/update_config',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                hideLoading(button);
+                if (response.success) {
+                    showAlert(response.message, 'success');
+                } else {
+                    showAlert(response.message, 'danger');
+                }
+            },
+            error: function() {
+                hideLoading(button);
+                showAlert('Failed to update display settings', 'danger');
+            }
+        });
+    });
+    
+    // Format settings form
+    $('#formatForm').on('submit', function(e) {
+        e.preventDefault();
+        const button = $(this).find('button[type="submit"]');
+        showLoading(button);
+        
+        const formData = {
+            TIME_FORMAT: $('#timeFormat').val(),
+            DATE_FORMAT: $('#dateFormat').val()
+        };
+        
+        $.ajax({
+            url: '/api/update_config',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                hideLoading(button);
+                if (response.success) {
+                    showAlert(response.message, 'success');
+                } else {
+                    showAlert(response.message, 'danger');
+                }
+            },
+            error: function() {
+                hideLoading(button);
+                showAlert('Failed to update format settings', 'danger');
+            }
+        });
+    });
+    
+    // Verse settings form
+    $('#verseForm').on('submit', function(e) {
+        e.preventDefault();
+        const button = $(this).find('button[type="submit"]');
+        showLoading(button);
+        
+        const formData = {
+            USE_TIME_BASED_SELECTION: $('#timeBasedSelection').is(':checked'),
+            DISPLAY_TITLE: $('#displayTitle').val(),
+            BORDER_CHAR: $('#borderChar').val(),
+            INDENT_SIZE: parseInt($('#indentSize').val())
+        };
+        
+        $.ajax({
+            url: '/api/update_config',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                hideLoading(button);
+                if (response.success) {
+                    showAlert(response.message, 'success');
+                } else {
+                    showAlert(response.message, 'danger');
+                }
+            },
+            error: function() {
+                hideLoading(button);
+                showAlert('Failed to update verse settings', 'danger');
+            }
+        });
+    });
+    
+    // Restart service
+    $('#restartService').on('click', function() {
+        const button = $(this);
+        showLoading(button);
+        
+        $.ajax({
+            url: '/api/restart_service',
+            method: 'POST',
+            success: function(response) {
+                hideLoading(button);
+                if (response.success) {
+                    showAlert(response.message, 'success');
+                } else {
+                    showAlert(response.message, 'danger');
+                }
+            },
+            error: function() {
+                hideLoading(button);
+                showAlert('Failed to restart service', 'danger');
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

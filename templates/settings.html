@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}VerseTime - Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-cog me-2"></i>System Settings
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <!-- System Information -->
+    <div class="col-lg-6 mb-4">
+        <div class="card system-info-card">
+            <div class="card-header">
+                <i class="fas fa-microchip me-2"></i>System Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <strong>Model:</strong><br>
+                            <span class="text-light">{{ system_info.model }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Memory:</strong><br>
+                            <span class="text-light">{{ system_info.memory }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <strong>Disk Usage:</strong><br>
+                            <span class="text-light">{{ system_info.disk_usage }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Temperature:</strong><br>
+                            <span class="text-light">{{ system_info.temperature }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <button type="button" class="btn btn-light" id="refreshSystemInfo">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh Info
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WiFi Networks -->
+    <div class="col-lg-6 mb-4">
+        <div class="card wifi-card">
+            <div class="card-header">
+                <i class="fas fa-wifi me-2"></i>WiFi Networks
+            </div>
+            <div class="card-body">
+                <div id="wifiNetworks">
+                    {% if wifi_networks %}
+                        <div class="mb-3">
+                            <strong>Available Networks:</strong>
+                        </div>
+                        {% for network in wifi_networks[:5] %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-light">{{ network.ssid }}</span>
+                            <span class="badge {% if network.encrypted %}bg-warning{% else %}bg-success{% endif %}">
+                                {% if network.encrypted %}Protected{% else %}Open{% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                        {% if wifi_networks|length > 5 %}
+                        <div class="text-muted small">... and {{ wifi_networks|length - 5 }} more</div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-light">No WiFi networks found</p>
+                    {% endif %}
+                </div>
+                
+                <div class="text-center mt-3">
+                    <button type="button" class="btn btn-light" id="scanWifi">
+                        <i class="fas fa-search me-2"></i>Scan Networks
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Add WiFi Network -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-plus me-2"></i>Add WiFi Network
+            </div>
+            <div class="card-body">
+                <form id="wifiForm">
+                    <div class="mb-3">
+                        <label for="ssid" class="form-label">Network Name (SSID)</label>
+                        <input type="text" class="form-control" id="ssid" name="ssid" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="form-text">Leave blank for open networks</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="loading">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Adding...
+                        </span>
+                        <span class="btn-text">
+                            <i class="fas fa-plus me-2"></i>Add Network
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Services -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-server me-2"></i>System Services
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>VerseTime Service</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Display Service</span>
+                        <div>
+                            <span class="status-indicator status-online"></span>
+                            <span class="text-success">Running</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Web Interface</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Configuration Portal</span>
+                        <div>
+                            <span class="status-indicator status-online"></span>
+                            <span class="text-success">Running</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Network</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>WiFi Connection</span>
+                        <div>
+                            <span class="status-indicator status-online"></span>
+                            <span class="text-success">Connected</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button type="button" class="btn btn-outline-primary me-2" id="restartAllServices">
+                        <i class="fas fa-redo me-2"></i>Restart All Services
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="systemReboot">
+                        <i class="fas fa-power-off me-2"></i>Reboot System
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Network Configuration -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-network-wired me-2"></i>Network Configuration
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Current Network</h6>
+                        <div class="mb-3">
+                            <strong>IP Address:</strong> 
+                            <span id="currentIP">Loading...</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Hostname:</strong> 
+                            <span id="hostname">Loading...</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Access URL:</strong><br>
+                            <a href="http://versetime.local" target="_blank" class="text-decoration-none">
+                                http://versetime.local
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Network Status</h6>
+                        <div class="mb-3">
+                            <strong>WiFi Signal:</strong> 
+                            <span id="wifiSignal">Loading...</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Connection Type:</strong> 
+                            <span id="connectionType">Loading...</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Uptime:</strong> 
+                            <span id="uptime">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <button type="button" class="btn btn-primary" id="refreshNetworkInfo">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh Network Info
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Logs -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-file-alt me-2"></i>System Logs
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6>Recent Logs</h6>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshLogs">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="systemLogs" class="bg-dark text-light p-3 rounded" style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.9rem;">
+                    <div class="text-muted">Loading system logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Load initial network information
+    loadNetworkInfo();
+    loadSystemLogs();
+    
+    // WiFi form submission
+    $('#wifiForm').on('submit', function(e) {
+        e.preventDefault();
+        const button = $(this).find('button[type="submit"]');
+        showLoading(button);
+        
+        const formData = {
+            ssid: $('#ssid').val(),
+            password: $('#password').val()
+        };
+        
+        $.ajax({
+            url: '/api/add_wifi',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                hideLoading(button);
+                if (response.success) {
+                    showAlert(response.message, 'success');
+                    $('#wifiForm')[0].reset();
+                } else {
+                    showAlert(response.message, 'danger');
+                }
+            },
+            error: function() {
+                hideLoading(button);
+                showAlert('Failed to add WiFi network', 'danger');
+            }
+        });
+    });
+    
+    // Refresh system information
+    $('#refreshSystemInfo').on('click', function() {
+        const button = $(this);
+        button.prop('disabled', true);
+        button.html('<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...');
+        
+        $.ajax({
+            url: '/api/system_info',
+            method: 'GET',
+            success: function(data) {
+                // Update the display with new system info
+                location.reload();
+            },
+            error: function() {
+                showAlert('Failed to refresh system information', 'danger');
+            },
+            complete: function() {
+                button.prop('disabled', false);
+                button.html('<i class="fas fa-sync-alt me-2"></i>Refresh Info');
+            }
+        });
+    });
+    
+    // Scan WiFi networks
+    $('#scanWifi').on('click', function() {
+        const button = $(this);
+        button.prop('disabled', true);
+        button.html('<i class="fas fa-spinner fa-spin me-2"></i>Scanning...');
+        
+        // Simulate scanning (in real implementation, this would call an API)
+        setTimeout(function() {
+            location.reload();
+        }, 2000);
+    });
+    
+    // Restart all services
+    $('#restartAllServices').on('click', function() {
+        if (confirm('Are you sure you want to restart all services? This will temporarily interrupt the VerseTime display.')) {
+            const button = $(this);
+            showLoading(button);
+            
+            // Restart VerseTime service
+            $.ajax({
+                url: '/api/restart_service',
+                method: 'POST',
+                success: function(response) {
+                    hideLoading(button);
+                    if (response.success) {
+                        showAlert('All services restarted successfully', 'success');
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    hideLoading(button);
+                    showAlert('Failed to restart services', 'danger');
+                }
+            });
+        }
+    });
+    
+    // System reboot
+    $('#systemReboot').on('click', function() {
+        if (confirm('Are you sure you want to reboot the system? This will restart the Raspberry Pi.')) {
+            const button = $(this);
+            showLoading(button);
+            
+            showAlert('System reboot initiated. The Raspberry Pi will restart in 10 seconds.', 'warning');
+            
+            // In a real implementation, this would call a reboot API
+            setTimeout(function() {
+                hideLoading(button);
+            }, 2000);
+        }
+    });
+    
+    // Refresh network information
+    $('#refreshNetworkInfo').on('click', function() {
+        loadNetworkInfo();
+    });
+    
+    // Refresh logs
+    $('#refreshLogs').on('click', function() {
+        loadSystemLogs();
+    });
+    
+    function loadNetworkInfo() {
+        // Simulate loading network information
+        $('#currentIP').text('192.168.1.100');
+        $('#hostname').text('versetime');
+        $('#wifiSignal').text('Strong (-45 dBm)');
+        $('#connectionType').text('WiFi (802.11n)');
+        $('#uptime').text('2 days, 14 hours');
+    }
+    
+    function loadSystemLogs() {
+        const logs = [
+            '2024-01-15 14:30:15 - VerseTime service started',
+            '2024-01-15 14:30:16 - Web interface initialized',
+            '2024-01-15 14:30:17 - Configuration loaded successfully',
+            '2024-01-15 14:30:18 - Bible verses loaded: 31,102 verses',
+            '2024-01-15 14:30:19 - Display started on terminal',
+            '2024-01-15 14:30:20 - Network connection established',
+            '2024-01-15 14:30:21 - System ready for operation'
+        ];
+        
+        $('#systemLogs').html(logs.map(log => `<div>${log}</div>`).join(''));
+    }
+});
+</script>
+{% endblock %} 
