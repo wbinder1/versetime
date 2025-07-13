@@ -140,6 +140,33 @@
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
         }
+        
+        .battery-indicator {
+            font-size: 0.9rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .battery-low {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .battery-medium {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .battery-high {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .battery-charging {
+            background-color: #3498db;
+            color: white;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -150,6 +177,7 @@
         <div class="container">
             <a class="navbar-brand" href="/">
                 <i class="fas fa-clock me-2"></i>VerseTime
+                <span id="battery-indicator" class="ms-2"></span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -222,6 +250,46 @@
             button.find('.loading').hide();
             button.find('.btn-text').show();
         }
+        
+        // Battery indicator functionality
+        function updateBatteryIndicator() {
+            $.get('/api/battery_info')
+                .done(function(data) {
+                    const indicator = $('#battery-indicator');
+                    if (data.percentage !== null && data.percentage !== undefined) {
+                        let batteryClass = 'battery-high';
+                        let batteryIcon = 'fa-battery-full';
+                        
+                        if (data.status === 'Charging') {
+                            batteryClass = 'battery-charging';
+                            batteryIcon = 'fa-battery-quarter fa-bolt';
+                        } else if (data.percentage <= 20) {
+                            batteryClass = 'battery-low';
+                            batteryIcon = 'fa-battery-empty';
+                        } else if (data.percentage <= 50) {
+                            batteryClass = 'battery-medium';
+                            batteryIcon = 'fa-battery-half';
+                        }
+                        
+                        indicator.html(`
+                            <span class="battery-indicator ${batteryClass}">
+                                <i class="fas ${batteryIcon} me-1"></i>${data.percentage}%
+                            </span>
+                        `);
+                    } else {
+                        indicator.html('');
+                    }
+                })
+                .fail(function() {
+                    $('#battery-indicator').html('');
+                });
+        }
+        
+        // Update battery indicator on page load and every 30 seconds
+        $(document).ready(function() {
+            updateBatteryIndicator();
+            setInterval(updateBatteryIndicator, 30000);
+        });
     </script>
     
     {% block extra_js %}{% endblock %}

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerseTime Web Interface Preview</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #ecf0f1;
+            --card-bg: #ffffff;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .nav-link {
+            color: white !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #f8f9fa !important;
+            transform: translateY(-2px);
+        }
+        
+        .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 5px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border: none;
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background-color: #27ae60;
+        }
+        
+        .status-offline {
+            background-color: #e74c3c;
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        .footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+        
+        .system-info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .wifi-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .battery-indicator {
+            font-size: 0.9rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .battery-low {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .battery-medium {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .battery-high {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .battery-charging {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .preview-notice {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-clock me-2"></i>VerseTime
+                <span class="battery-indicator battery-charging ms-2">
+                    <i class="fas fa-battery-quarter fa-bolt me-1"></i>85%
+                </span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/settings">
+                            <i class="fas fa-cog me-1"></i>Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mt-4">
+        <div class="preview-notice">
+            <i class="fas fa-eye me-2"></i>
+            <strong>Preview Mode:</strong> This shows how the VerseTime web interface will look with the new features
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">
+                    <i class="fas fa-cog me-2"></i>System Settings
+                </h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- System Information -->
+            <div class="col-lg-6 mb-4">
+                <div class="card system-info-card">
+                    <div class="card-header">
+                        <i class="fas fa-microchip me-2"></i>System Information
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <strong>Model:</strong><br>
+                                    <span class="text-light">Raspberry Pi 4 Model B</span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Memory:</strong><br>
+                                    <span class="text-light">4096 MB</span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <strong>Disk Usage:</strong><br>
+                                    <span class="text-light">23% used</span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Temperature:</strong><br>
+                                    <span class="text-light" id="temperature-display">42.5°C</span>
+                                    <div class="mt-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="tempUnit" id="tempCelsius" value="celsius" checked>
+                                            <label class="form-check-label text-light" for="tempCelsius">Celsius</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="tempUnit" id="tempFahrenheit" value="fahrenheit">
+                                            <label class="form-check-label text-light" for="tempFahrenheit">Fahrenheit</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-light" id="refreshSystemInfo">
+                                <i class="fas fa-sync-alt me-2"></i>Refresh Info
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WiFi Networks -->
+            <div class="col-lg-6 mb-4">
+                <div class="card wifi-card">
+                    <div class="card-header">
+                        <i class="fas fa-wifi me-2"></i>WiFi Networks
+                    </div>
+                    <div class="card-body">
+                        <div id="wifiNetworks">
+                            <div class="mb-3">
+                                <strong>Available Networks:</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light">MyWiFiNetwork</span>
+                                <div>
+                                    <span class="badge bg-success me-1">85%</span>
+                                    <span class="badge bg-warning">WPA/WPA2</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light">NeighborWiFi</span>
+                                <div>
+                                    <span class="badge bg-warning me-1">45%</span>
+                                    <span class="badge bg-warning">WPA/WPA2</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light">GuestNetwork</span>
+                                <div>
+                                    <span class="badge bg-success me-1">92%</span>
+                                    <span class="badge bg-success">Open</span>
+                                </div>
+                            </div>
+                            <div class="text-muted small">... and 2 more</div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-light me-2" id="scanWifi">
+                                <i class="fas fa-search me-2"></i>Scan Networks
+                            </button>
+                            <button type="button" class="btn btn-outline-light" id="addDifferentNetwork">
+                                <i class="fas fa-plus me-2"></i>Add Different Network
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Add WiFi Network -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-plus me-2"></i>Add WiFi Network
+                    </div>
+                    <div class="card-body">
+                        <form id="wifiForm">
+                            <div class="mb-3">
+                                <label for="ssid" class="form-label">Network Name (SSID)</label>
+                                <input type="text" class="form-control" id="ssid" name="ssid" placeholder="Enter network name" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                                <div class="form-text">Leave blank for open networks</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <span class="loading">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>Adding...
+                                </span>
+                                <span class="btn-text">
+                                    <i class="fas fa-plus me-2"></i>Add Network
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Services -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-server me-2"></i>System Services
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6>VerseTime Service</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Display Service</span>
+                                <div>
+                                    <span class="status-indicator status-online"></span>
+                                    <span class="text-success">Running</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Web Interface</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Configuration Portal</span>
+                                <div>
+                                    <span class="status-indicator status-online"></span>
+                                    <span class="text-success">Running</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Network</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>WiFi Connection</span>
+                                <div>
+                                    <span class="status-indicator status-online"></span>
+                                    <span class="text-success">Connected</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-primary me-2" id="restartAllServices">
+                                <i class="fas fa-redo me-2"></i>Restart All Services
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="systemReboot">
+                                <i class="fas fa-power-off me-2"></i>Reboot System
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Configuration -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-network-wired me-2"></i>Network Configuration
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Current Network</h6>
+                                <div class="mb-3">
+                                    <strong>IP Address:</strong> 
+                                    <span id="currentIP">192.168.1.100</span>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Hostname:</strong> 
+                                    <span id="hostname">versetime</span>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Access URL:</strong><br>
+                                    <a href="http://versetime.local" target="_blank" class="text-decoration-none">
+                                        http://versetime.local
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6>Network Status</h6>
+                                <div class="mb-3">
+                                    <strong>WiFi Signal:</strong> 
+                                    <span id="wifiSignal">Strong (-45 dBm)</span>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Connection Type:</strong> 
+                                    <span id="connectionType">WiFi (802.11n)</span>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Uptime:</strong> 
+                                    <span id="uptime">2 days, 14 hours</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-primary" id="refreshNetworkInfo">
+                                <i class="fas fa-sync-alt me-2"></i>Refresh Network Info
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Logs -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-file-alt me-2"></i>System Logs
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6>Recent Logs</h6>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshLogs">
+                                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="systemLogs" class="bg-dark text-light p-3 rounded" style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.9rem;">
+                            <div>2024-01-15 14:30:15 - VerseTime service started</div>
+                            <div>2024-01-15 14:30:16 - Web interface initialized</div>
+                            <div>2024-01-15 14:30:17 - Configuration loaded successfully</div>
+                            <div>2024-01-15 14:30:18 - Bible verses loaded: 31,102 verses</div>
+                            <div>2024-01-15 14:30:19 - Display started on terminal</div>
+                            <div>2024-01-15 14:30:20 - Network connection established</div>
+                            <div>2024-01-15 14:30:21 - System ready for operation</div>
+                            <div>2024-01-15 14:30:22 - Battery monitoring enabled</div>
+                            <div>2024-01-15 14:30:23 - WiFi scanning available</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="mb-0">
+                <i class="fas fa-heart text-danger"></i> 
+                VerseTime for Raspberry Pi - Powered by Flask
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        // Temperature unit toggle demo
+        $('input[name="tempUnit"]').on('change', function() {
+            const unit = $(this).val();
+            if (unit === 'fahrenheit') {
+                $('#temperature-display').text('108.5°F');
+            } else {
+                $('#temperature-display').text('42.5°C');
+            }
+        });
+        
+        // Add different network button demo
+        $('#addDifferentNetwork').on('click', function() {
+            $('html, body').animate({
+                scrollTop: $('#wifiForm').offset().top - 100
+            }, 500);
+            $('#ssid').focus();
+        });
+        
+        // Show preview notice
+        setTimeout(function() {
+            $('.preview-notice').fadeOut(2000);
+        }, 3000);
+    </script>
+</body>
+</html> 

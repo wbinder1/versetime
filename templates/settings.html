@@ -40,7 +40,17 @@
                         
                         <div class="mb-3">
                             <strong>Temperature:</strong><br>
-                            <span class="text-light">{{ system_info.temperature }}</span>
+                            <span class="text-light" id="temperature-display">{{ system_info.temperature }}</span>
+                            <div class="mt-2">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="tempUnit" id="tempCelsius" value="celsius" checked>
+                                    <label class="form-check-label text-light" for="tempCelsius">Celsius</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="tempUnit" id="tempFahrenheit" value="fahrenheit">
+                                    <label class="form-check-label text-light" for="tempFahrenheit">Fahrenheit</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -83,8 +93,11 @@
                 </div>
                 
                 <div class="text-center mt-3">
-                    <button type="button" class="btn btn-light" id="scanWifi">
+                    <button type="button" class="btn btn-light me-2" id="scanWifi">
                         <i class="fas fa-search me-2"></i>Scan Networks
+                    </button>
+                    <button type="button" class="btn btn-outline-light" id="addDifferentNetwork">
+                        <i class="fas fa-plus me-2"></i>Add Different Network
                     </button>
                 </div>
             </div>
@@ -308,7 +321,8 @@ $(document).ready(function() {
             method: 'GET',
             success: function(data) {
                 // Update the display with new system info
-                location.reload();
+                updateSystemInfoDisplay(data);
+                showAlert('System information updated', 'success');
             },
             error: function() {
                 showAlert('Failed to refresh system information', 'danger');
@@ -326,10 +340,43 @@ $(document).ready(function() {
         button.prop('disabled', true);
         button.html('<i class="fas fa-spinner fa-spin me-2"></i>Scanning...');
         
-        // Simulate scanning (in real implementation, this would call an API)
-        setTimeout(function() {
-            location.reload();
-        }, 2000);
+        $.ajax({
+            url: '/api/scan_wifi',
+            method: 'POST',
+            success: function(data) {
+                // Update the WiFi networks display
+                updateWifiNetworksDisplay(data);
+                showAlert('WiFi scan completed', 'success');
+            },
+            error: function() {
+                showAlert('Failed to scan WiFi networks', 'danger');
+            },
+            complete: function() {
+                button.prop('disabled', false);
+                button.html('<i class="fas fa-search me-2"></i>Scan Networks');
+            }
+        });
+    });
+    
+    // Add different network button
+    $('#addDifferentNetwork').on('click', function() {
+        // Scroll to the Add WiFi Network form
+        $('html, body').animate({
+            scrollTop: $('#wifiForm').offset().top - 100
+        }, 500);
+        
+        // Focus on the SSID field
+        $('#ssid').focus();
+    });
+    
+    // Temperature unit toggle
+    $('input[name="tempUnit"]').on('change', function() {
+        const unit = $(this).val();
+        if (unit === 'fahrenheit' && window.currentTempFahrenheit && window.currentTempFahrenheit !== 'Unknown') {
+            $('#temperature-display').text(window.currentTempFahrenheit);
+        } else if (window.currentTempCelsius) {
+            $('#temperature-display').text(window.currentTempCelsius);
+        }
     });
     
     // Restart all services
@@ -404,6 +451,65 @@ $(document).ready(function() {
         ];
         
         $('#systemLogs').html(logs.map(log => `<div>${log}</div>`).join(''));
+    }
+    
+    function updateWifiNetworksDisplay(networks) {
+        const container = $('#wifiNetworks');
+        if (networks && networks.length > 0) {
+            let html = '<div class="mb-3"><strong>Available Networks:</strong></div>';
+            
+            networks.slice(0, 5).forEach(function(network) {
+                const signalStrength = network.signal || 0;
+                let signalClass = 'bg-success';
+                if (signalStrength < 30) signalClass = 'bg-danger';
+                else if (signalStrength < 60) signalClass = 'bg-warning';
+                
+                html += `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-light">${network.ssid}</span>
+                        <div>
+                            <span class="badge ${signalClass} me-1">${signalStrength}%</span>
+                            <span class="badge ${network.encryption === 'WPA/WPA2' ? 'bg-warning' : 'bg-success'}">
+                                ${network.encryption}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (networks.length > 5) {
+                html += `<div class="text-muted small">... and ${networks.length - 5} more</div>`;
+            }
+            
+            container.html(html);
+        } else {
+            container.html('<p class="text-light">No WiFi networks found</p>');
+        }
+    }
+    
+    function updateTemperatureDisplay(unit) {
+        const tempCelsius = '{{ system_info.temperature }}';
+        const tempFahrenheit = '{{ system_info.temperature_f }}';
+        
+        if (unit === 'fahrenheit' && tempFahrenheit !== 'Unknown') {
+            $('#temperature-display').text(tempFahrenheit);
+        } else {
+            $('#temperature-display').text(tempCelsius);
+        }
+    }
+    
+    function updateSystemInfoDisplay(data) {
+        // Store the new temperature data for the toggle function
+        window.currentTempCelsius = data.temperature;
+        window.currentTempFahrenheit = data.temperature_f;
+        
+        // Update temperature display based on current selection
+        const selectedUnit = $('input[name="tempUnit"]:checked').val();
+        if (selectedUnit === 'fahrenheit' && data.temperature_f !== 'Unknown') {
+            $('#temperature-display').text(data.temperature_f);
+        } else {
+            $('#temperature-display').text(data.temperature);
+        }
     }
 });
 </script>

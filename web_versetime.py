@@ -173,10 +173,94 @@ class SystemManager:
             if result.returncode == 0:
                 temp = result.stdout.strip().split('=')[1]
                 info['temperature'] = temp
+                # Convert to Fahrenheit
+                try:
+                    temp_c = float(temp.replace('°C', ''))
+                    temp_f = (temp_c * 9/5) + 32
+                    info['temperature_f'] = f"{temp_f:.1f}°F"
+                except:
+                    info['temperature_f'] = 'Unknown'
         except:
             info['temperature'] = 'Unknown'
+            info['temperature_f'] = 'Unknown'
         
         return info
+    
+    def get_battery_info(self):
+        """Get battery information if available"""
+        battery_info = {}
+        
+        # Check for battery in /sys/class/power_supply
+        try:
+            battery_dirs = glob.glob('/sys/class/power_supply/BAT*')
+            if battery_dirs:
+                battery_dir = battery_dirs[0]  # Use first battery
+                
+                # Get battery percentage
+                try:
+                    with open(os.path.join(battery_dir, 'capacity'), 'r') as f:
+                        capacity = int(f.read().strip())
+                        battery_info['percentage'] = capacity
+                        
+                        # Get battery status
+                        try:
+                            with open(os.path.join(battery_dir, 'status'), 'r') as f:
+                                status = f.read().strip()
+                                battery_info['status'] = status
+                        except:
+                            battery_info['status'] = 'Unknown'
+                            
+                except:
+                    battery_info['percentage'] = None
+                    battery_info['status'] = 'Unknown'
+            else:
+                battery_info['percentage'] = None
+                battery_info['status'] = 'No battery'
+        except:
+            battery_info['percentage'] = None
+            battery_info['status'] = 'Unknown'
+        
+        return battery_info
+    
+    def scan_wifi_networks(self):
+        """Scan for available WiFi networks"""
+        networks = []
+        try:
+            result = subprocess.run(['sudo', 'iwlist', 'wlan0', 'scan'], capture_output=True, text=True)
+            if result.returncode == 0:
+                lines = result.stdout.split('\n')
+                current_ssid = None
+                current_encryption = None
+                current_signal = None
+                
+                for line in lines:
+                    if 'ESSID:' in line:
+                        ssid = line.split('"')[1] if '"' in line else line.split(':')[1].strip()
+                        if ssid and ssid != '':
+                            current_ssid = ssid
+                    elif 'Encryption key:' in line and current_ssid:
+                        encrypted = 'on' in line
+                        current_encryption = 'WPA/WPA2' if encrypted else 'Open'
+                    elif 'Quality=' in line and current_ssid:
+                        try:
+                            quality_part = line.split('Quality=')[1].split()[0]
+                            signal_strength = int(quality_part.split('/')[0])
+                            current_signal = signal_strength
+                        except:
+                            current_signal = 0
+                    elif 'IE: IEEE 802.11i' in line and current_ssid:
+                        # End of network info, add to list
+                        networks.append({
+                            'ssid': current_ssid,
+                            'encryption': current_encryption or 'Unknown',
+                            'signal': current_signal or 0
+                        })
+                        current_ssid = None
+                        current_encryption = None
+                        current_signal = None
+        except:
+            pass
+        return networks
     
     def get_wifi_networks(self):
         """Get available WiFi networks"""
@@ -253,10 +337,12 @@ def settings():
     """Settings page with system configuration"""
     system_info = system_manager.get_system_info()
     wifi_networks = system_manager.get_wifi_networks()
+    battery_info = system_manager.get_battery_info()
     
     return render_template('settings.html',
                          system_info=system_info,
-                         wifi_networks=wifi_networks)
+                         wifi_networks=wifi_networks,
+                         battery_info=battery_info)
 
 @app.route('/api/update_config', methods=['POST'])
 def update_config():
@@ -294,6 +380,17 @@ def add_wifi():
 def get_system_info():
     """Get current system information"""
     return jsonify(system_manager.get_system_info())
+
+@app.route('/api/battery_info')
+def get_battery_info():
+    """Get current battery information"""
+    return jsonify(system_manager.get_battery_info())
+
+@app.route('/api/scan_wifi', methods=['POST'])
+def scan_wifi():
+    """Scan for available WiFi networks"""
+    networks = system_manager.scan_wifi_networks()
+    return jsonify(networks)
 
 @app.route('/api/restart_service', methods=['POST'])
 def restart_service():
